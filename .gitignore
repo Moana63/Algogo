@@ -1,2 +1,7 @@
 __pycache__/
 Ecoli_100Kb/
+*.txt
+
+*.gz
+
+*.png
