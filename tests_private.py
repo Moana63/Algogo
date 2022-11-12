@@ -1,6 +1,6 @@
 from time import monotonic
 from datetime import timedelta
-from main_Sisi import compress_naive, algebric_clustering
+from main_Sisi import compress_naive, algebric_clustering, matrix_clustering
 from typing import Callable
 from os import listdir, system, path
 import matplotlib.pyplot as plt
@@ -10,7 +10,9 @@ FILES: list[str] = sorted([f for f in listdir(
 FILES_NO_EXT: list[str] = [f.split('.')[0] for f in FILES]
 INPUT: list[str] = [f"Ecoli_100Kb/{p}" for p in FILES]
 OUTPUT: list[str] = [f"{inp.split('.')[0]}.txt" for inp in INPUT]
-FUNC_TEST: list[Callable] = [(compress_naive,{}), (algebric_clustering,{'ksize':3})]
+FUNC_TEST: list[Callable] = [
+    (compress_naive, {}), (matrix_clustering, {'ksize': 4})]
+
 
 def timer(func):
     """
@@ -26,19 +28,19 @@ def timer(func):
 
 
 @timer
-def my_tester(func: Callable, input: str, output: str, kwargs:dict) -> None:
-    return {'memory': func(input, output,**kwargs), 'file': output}
+def my_tester(func: Callable, input: str, output: str, kwargs: dict) -> None:
+    return {'memory': func(input, output, **kwargs), 'file': output}
 
 
 if __name__ == "__main__":
-    fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, nrows=1, figsize=(15,10))
+    fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, nrows=1, figsize=(15, 10))
     ax1.title.set_text('Fig. A : Sort function time spent')
     ax2.title.set_text('Fig. B : Sort function memory usage')
     ax3.title.set_text('Fig. C : Compression efficiency')
 
-    for (func,kwargs) in FUNC_TEST:
+    for (func, kwargs) in FUNC_TEST:
         func_ret: list[tuple] = [
-            my_tester(func, INPUT[i], OUTPUT[i],kwargs) for i, _ in enumerate(INPUT)]
+            my_tester(func, INPUT[i], OUTPUT[i], kwargs) for i, _ in enumerate(INPUT)]
         [system(f"gzip -f {out}") for out in OUTPUT]
         x: list = [ret['file'].split('.')[0].split('_')[-1]
                    for ret in func_ret]
