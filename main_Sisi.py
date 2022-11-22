@@ -5,12 +5,26 @@ from random import choice
 from collections import Counter
 from itertools import product
 
+######## KMER FREQUENCY ########
+
+
+
+######## DISTANCE MATRIX => O(n**1000000000000) environ ########
 
 def hash_kmer(kmer: str) -> int:
     return sum(({'A': 1, 'C': 2, 'G': 3, 'T': 4, }.get(l, 0)*(5**i) for i, l in enumerate(kmer)))
 
 
-def frequency(read: str, seed_size) -> Counter:
+def frequency(read: str, seed_size=2) -> Counter:
+    """Returns kmer frequency per read
+
+    Args:
+        read (str): a DNA lecture
+        seed_size (int, optional): Size of window. Defaults to 2.
+
+    Returns:
+        Counter: counts of kmers inside the lecture
+    """
     return Counter([read[k:k+seed_size] for k in range(len(read)-seed_size)])
 
 
@@ -107,7 +121,7 @@ def compress_naive(input: str, output: str):
         writer.write(''.join(lines))
     return abs(max_memory - init_memory)
 
-# mettre la pitite fonction ici :)
+
 
 
 if __name__ == "__main__":
