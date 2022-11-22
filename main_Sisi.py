@@ -6,6 +6,10 @@ from collections import Counter
 from itertools import product
 from operator import itemgetter
 
+def write_output(output:str,reads_ordered:list) -> None:
+    with open(output, 'w') as writer:
+        writer.write('\n'.join(reads_ordered))
+
 def frequency(read: str, seed_size=2) -> Counter:
     """Returns kmer frequency per read
 
@@ -37,8 +41,7 @@ def compress_by_kmer(input: str, output: str, ksize: int = 4, kmer_number:int = 
     vectors: list = [''.join([key for key,value in frequency(read, ksize).most_common(kmer_number)]) for read in reads]
     ordered_reads: list = [reads[i] for i in [i for i,_ in sorted(enumerate(vectors), key=lambda x:x[1])]]
     max_memory = get_memory()
-    with open(output, 'w') as writer:
-        writer.write(''.join(ordered_reads))
+    write_output(output,ordered_reads)
     return abs(max_memory - init_memory)
 
 ######## DISTANCE MATRIX => O(n**1000000000000) environ ########
@@ -58,8 +61,7 @@ def algebric_clustering(input: str, output: str, ksize: int = 4):
     reads_ordered: list = sorted(
         reads, key=lambda read: calculate_algebric_distance(frequency(read, ksize), ref))
     max_memory = get_memory()
-    with open(output, 'w') as writer:
-        writer.write(''.join(reads_ordered))
+    write_output(output,reads_ordered)
     return abs(max_memory - init_memory)
 
 
@@ -92,8 +94,7 @@ def matrix_clustering(input: str, output: str, ksize: int = 4):
     ordered_reads: list = [reads[i] for i in sorted_reads]
 
     max_memory = get_memory()
-    with open(output, 'w') as writer:
-        writer.write(''.join(ordered_reads))
+    write_output(output,ordered_reads)
     return abs(max_memory - init_memory)
 
 
@@ -118,8 +119,7 @@ def matrix_clustering_new(input: str, output: str, ksize: int = 4):
     ordered_reads: list = [reads[i] for i in sorted_reads]
 
     max_memory = get_memory()
-    with open(output, 'w') as writer:
-        writer.write(''.join(ordered_reads))
+    write_output(output,ordered_reads)
     return abs(max_memory - init_memory)
 
 
@@ -129,15 +129,14 @@ def get_memory() -> float:
 
 def clean_fasta(input: str) -> list[str]:
     with open(input, 'r') as reader:
-        return [l for l in reader if l[0] not in ['\n', '>']]
+        return [l.strip() for l in reader if l[0] not in ['\n', '>']]
 
 
 def compress_naive(input: str, output: str):
     init_memory = get_memory()
     lines = sorted(clean_fasta(input))
     max_memory = get_memory()
-    with open(output, 'w') as writer:
-        writer.write(''.join(lines))
+    write_output(output,lines)
     return abs(max_memory - init_memory)
 
 
