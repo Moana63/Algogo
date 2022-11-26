@@ -27,7 +27,7 @@ def compress_naive(input: str, output: str):
     return abs(max_memory - init_memory)
 
 
-def write_file(filein, fileout, seed_size=5):
+def write_file(filein, fileout, seed_size=4):
     init_memory = get_memory()
     list_seq = clean_fasta(filein)
     index = indexation_minimisers(list_seq, seed_size)

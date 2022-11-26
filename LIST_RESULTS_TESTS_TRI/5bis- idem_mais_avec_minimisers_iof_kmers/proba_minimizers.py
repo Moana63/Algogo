@@ -61,7 +61,7 @@ def indexation_minimisers(list_seq, seed_size):
     return index
 
 
-def write_file(filein, fileout, seed_size=2):
+def write_file(filein, fileout, seed_size=4):
     with open(filein) as f:
         list_seq = [seq.strip() for seq in f]
     index = indexation_minimisers(list_seq, seed_size)
