@@ -22,7 +22,8 @@ def frequency(read: str, seed_size) -> Counter:
 file = ["GCAACTCTGCTACGTCTGGGGCTGGCTTACGGCCCCGGGGGGATGTCATTACGTGAAGTCACTGCATGGGCTCAGCTCCATGACGTTGCAACATTATCTG",
         "ATGTGACAAGTTACGACGCCAGAGCCAGCACCTCAGCCACCCACTGCTGGAAGCCTTTCACATCCAGATCCAATGCCACCTGTACATTGGCTGGCTTGCC", "CGAATTCGACTACTGTTGCGTACACGCCTCGCTGGCGCTGCGCGAAGACGGTTACGAAACCATTATGGTTAACTGTAACCCGGAAACCGTCTCCACCGAC", "CGAATTCGACTACTGTTGCGTACACGCCTCGCTGGCGCTGCGCGAAGACGGTTACGAAACCATTATGGTTAACTGTCCCGGAAACCGTCTCCACCGACAA"]
 
-# fréquence de kmer, mais filtrée en ne comptant que la fréqence des minimsers
+# même principa que la fréquence de kmer, mais "filtrée" en ne comptant que la fréqence des minimsers
+# 0 si minimiser non présent, 1 si présent
 
 
 def frequency_minimizer(read, seed_size, len_window=10):
@@ -61,7 +62,7 @@ def indexation_minimisers(list_seq, seed_size):
     return index
 
 
-def write_file(filein, fileout, seed_size=4):
+def write_file(filein, fileout, seed_size=2):
     with open(filein) as f:
         list_seq = [seq.strip() for seq in f]
     index = indexation_minimisers(list_seq, seed_size)
