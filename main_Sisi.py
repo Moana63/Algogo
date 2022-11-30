@@ -6,9 +6,11 @@ from collections import Counter
 from itertools import product
 from operator import itemgetter
 
-def write_output(output:str,reads_ordered:list) -> None:
+
+def write_output(output: str, reads_ordered: list) -> None:
     with open(output, 'w') as writer:
         writer.write('\n'.join(reads_ordered))
+
 
 def frequency(read: str, seed_size=2) -> Counter:
     """Returns kmer frequency per read
@@ -24,7 +26,8 @@ def frequency(read: str, seed_size=2) -> Counter:
 
 ######## KMER FREQUENCY ########
 
-def compress_by_kmer(input: str, output: str, ksize: int = 4, kmer_number:int = 3) -> float:
+
+def compress_by_kmer(input: str, output: str, ksize: int = 4, kmer_number: int = 3) -> float:
     """Sort a read file by the most present kmers each read contains
 
     Args:
@@ -36,15 +39,13 @@ def compress_by_kmer(input: str, output: str, ksize: int = 4, kmer_number:int = 
     Returns:
         float: _description_
     """
-    init_memory = get_memory()
     reads: list = clean_fasta(input)
-    vectors: list = [''.join([key for key,value in frequency(read, ksize).most_common(kmer_number)]) for read in reads]
-    ordered_reads: list = [reads[i] for i in [i for i,_ in sorted(enumerate(vectors), key=lambda x:x[1])]]
-    max_memory = get_memory()
-    write_output(output,ordered_reads)
-    return abs(max_memory - init_memory)
+    ordered_reads: list = [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
+        [key for key, _ in frequency(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
+    write_output(output, ordered_reads)
 
 ######## DISTANCE MATRIX => O(n**1000000000000) environ ########
+
 
 def hash_kmer(kmer: str) -> int:
     return sum(({'A': 1, 'C': 2, 'G': 3, 'T': 4, }.get(l, 0)*(5**i) for i, l in enumerate(kmer)))
@@ -61,7 +62,7 @@ def algebric_clustering(input: str, output: str, ksize: int = 4):
     reads_ordered: list = sorted(
         reads, key=lambda read: calculate_algebric_distance(frequency(read, ksize), ref))
     max_memory = get_memory()
-    write_output(output,reads_ordered)
+    write_output(output, reads_ordered)
     return abs(max_memory - init_memory)
 
 
@@ -94,7 +95,7 @@ def matrix_clustering(input: str, output: str, ksize: int = 4):
     ordered_reads: list = [reads[i] for i in sorted_reads]
 
     max_memory = get_memory()
-    write_output(output,ordered_reads)
+    write_output(output, ordered_reads)
     return abs(max_memory - init_memory)
 
 
@@ -119,7 +120,7 @@ def matrix_clustering_new(input: str, output: str, ksize: int = 4):
     ordered_reads: list = [reads[i] for i in sorted_reads]
 
     max_memory = get_memory()
-    write_output(output,ordered_reads)
+    write_output(output, ordered_reads)
     return abs(max_memory - init_memory)
 
 
@@ -136,7 +137,7 @@ def compress_naive(input: str, output: str):
     init_memory = get_memory()
     lines = sorted(clean_fasta(input))
     max_memory = get_memory()
-    write_output(output,lines)
+    write_output(output, lines)
     return abs(max_memory - init_memory)
 
 
@@ -155,4 +156,4 @@ if __name__ == "__main__":
     hashes = {k: hash_kmer(k) for k in kmers}
     print(len(hashes.keys()) == len(set(l for l in hashes.values())))
     """
-    #compress_by_kmer("Ecoli_100Kb/ecoli_100Kb_reads_005x.fasta","",4)
+    # compress_by_kmer("Ecoli_100Kb/ecoli_100Kb_reads_005x.fasta","",4)
