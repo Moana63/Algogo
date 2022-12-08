@@ -27,7 +27,7 @@ def frequency(read: str, seed_size=2) -> Counter:
 ######## KMER FREQUENCY ########
 
 
-def compress_by_kmer(input: str, output: str, ksize: int = 4, kmer_number: int = 3) -> float:
+def compress_frequency_kmer(input: str, output: str, ksize: int = 4, kmer_number: int = 3) -> float:
     """Sort a read file by the most present kmers each read contains
 
     Args:
@@ -43,6 +43,39 @@ def compress_by_kmer(input: str, output: str, ksize: int = 4, kmer_number: int =
     ordered_reads: list = [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
         [key for key, _ in frequency(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
     write_output(output, ordered_reads)
+
+
+######## MINIMIZER FREQUENCY #########
+
+def compress_frequency_minimizer(input: str, output: str, ksize: int = 4, kmer_number: int = 3, len_window: int = 3) -> float:
+    """Sort a read file by the most present kmers each read contains
+
+    Args:
+        input (str): input file
+        output (str): output file
+        ksize (int, optional): size of kmer. Defaults to 4.
+        kmer_number (int, optional): number of top common kmers. Defaults to 3.
+
+    Returns:
+        float: _description_
+    """
+    reads: list = clean_fasta(input)
+    ordered_reads: list = [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
+        [key for key, _ in minimap_counter(read, len_window, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
+    write_output(output, ordered_reads)
+
+
+def minimap_counter(seq, len_window, ksize):
+    list_kmer_window = [0 for _ in range(len_window)]
+    minimiser_list = list()
+    for i in range(len(seq)-ksize-1):
+        for j in range(len_window):
+            list_kmer_window[j] = (seq[i+j: i+j+ksize], i)
+        min = sorted(list_kmer_window)[0]
+        if min[0] not in minimiser_list:
+            minimiser_list.append(min)
+    return Counter([minimizer for minimizer, idx in minimiser_list])
+
 
 ######## DISTANCE MATRIX => O(n**1000000000000) environ ########
 
