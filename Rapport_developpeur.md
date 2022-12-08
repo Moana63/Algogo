@@ -14,9 +14,19 @@ Communes à toutes les fonctions.
 
 ## Ecriture des reads triés dans un fichier texte : @write_output
 
-Via un décorateur
+Le traitement des entrées/sorties s'effectue via un décorateur.
 
+```python
+def write_output(func) -> None:
+    """Decorator to read input file as a list of reads, and writing out the returned list to the output
 
+    Args:
+        func (Callable): Targeted function to order reads. Must return a list
+    """
+```
+
+On ajoute aux paramètres de `func` la liste des reads contenus dans le fichier (appel à `clean_fasta`)
+L'écriture dans le fichier de sortie est appelé sur le retour de la fonction `func` décorée
 
 
 # Première stratégie
