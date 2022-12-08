@@ -13,7 +13,9 @@ Then, you may specify a compression method. Default is `minimiser_presence_absen
 read_organizer.py [-h] -i INPUT -o OUTPUT [--func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]]
 ```
 
+## Parameters
 
+Command-line tool allows you to interact with the software with those arguments :
 
 ```bash
 options:
@@ -23,12 +25,23 @@ options:
   -o OUTPUT, --output OUTPUT
                         Path to a txt file, output of the program
   --func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]
-                        Gives a method to sort reads.
+                        Gives a method to sort reads. Default is 'minimiser_presence_absence'.
 ```
 
-Vérifier qu'on change pas la data
+The `--func` argument allows you to pick a method to reorder the FASTA-like file.
 
-```bash
-sort -u
-diff
-```
+### --func minimiser_presence_absence (default)
+
+This method uses the presence or absence of minimizers, given a read-specific threshold, to reorder the file.
+
+### --func minimisers_lexico
+
+This method uses the lexicographical order of most common minimizers to reorder the file.
+
+### --func kmers_frequency
+
+This method uses the frequency of kmers, given a read-specific threshold, to reorder the file.
+
+### --func kmers_lexico
+
+This method uses the lexicographical order of most common kmers to reorder the file.
