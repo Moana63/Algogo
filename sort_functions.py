@@ -246,12 +246,51 @@ def kmers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer
 
 @write_output
 def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 4) -> list:
+    """Sort a read file by the kmers content of each read
+
+    Parameters
+    ----------
+    input : str
+        the file to sort
+    output : str
+        the sorted file
+    reads : list, optional
+        a list containing all the reads extracted from the input file, by default []
+    seed_size : int, optional
+        the size of kmer, used to sort the reads, by default 4, which is the best option identified experimentally
+
+    Returns
+    -------
+    list
+        the list containing the sorted reads
+
+    """
     index = indexation(reads, seed_size)
     return list(chain(*[[reads[int(seq)] for seq in index[key]] for key in sorted(index.keys())]))
 
 
 @write_output
 def minimiser_presence_absence(input: str, output: str, reads: list = [], seed_size: int = 4, len_window: int = 33) -> list:
+    """Sort a read file by the minimisers content of each read
+
+    Parameters
+    ----------
+    input : str
+        the file to sort
+    output : str
+        the sorted file
+    reads : list, optional
+        a list containing all the reads extracted from the input file, by default []
+    seed_size : int, optional
+        the size of kmer, used to sort the reads, by default 4, which is the best option identified experimentally
+    len_window : int, optional
+        the length of the sliding window to xtract the minimiser from the sequence, by default 33, which is the best option identified experimentally
+
+    Returns
+    -------
+    list
+        the list containing the sorted reads
+    """
     index = indexation_minimisers(reads, seed_size, len_window)
     return list(chain(*[[reads[int(seq)] for seq in index[key]] for key in sorted(index.keys())]))
 
