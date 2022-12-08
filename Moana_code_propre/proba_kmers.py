@@ -87,7 +87,7 @@ def indexation(list_seq: list, seed_size: int, len_read: int = 100) -> dict:
     return index
 
 
-def write_file(filein, fileout, seed_size: int):
+def write_file(filein, fileout, seed_size: int = 4):
     list_seq = clean_fasta(filein)
     index = indexation(list_seq, seed_size)
     list_keys = sorted(index.keys())

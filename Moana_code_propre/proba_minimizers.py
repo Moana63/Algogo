@@ -89,7 +89,7 @@ def indexation_minimisers(list_seq: list, seed_size: int) -> dict:
     return index
 
 
-def write_file(filein, fileout, seed_size: int, len_window: int):
+def write_file(filein, fileout, seed_size: int = 4, len_window: int = 33):
     list_seq = clean_fasta(filein)
     index = indexation_minimisers(list_seq, seed_size, len_window)
     list_keys = sorted(index.keys())
