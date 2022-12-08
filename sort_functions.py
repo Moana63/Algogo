@@ -4,11 +4,24 @@ from itertools import product, chain
 
 
 def clean_fasta(input: str) -> list[str]:
+    """Returns all the reads from a fasta-like file as a list
+
+    Args:
+        input (str): filepath to extract from
+
+    Returns:
+        list[str]: all the reads without their tags
+    """
     with open(input, 'r') as reader:
         return [l.strip() for l in reader if l[0] not in ['\n', '>']]
 
 
 def write_output(func) -> None:
+    """Decorator to read input file as a list of reads, and writing out the returned list to the output
+
+    Args:
+        func (Callable): Targeted function to order reads. Must return a list
+    """
     def wrapper(*args, **kwargs):
         with open(args[1], 'w') as writer:
             writer.write(
@@ -33,7 +46,17 @@ def frequency(read: str, seed_size) -> dict:
     return Counter([read[k:k+seed_size] for k in range(len(read)-seed_size)])
 
 
-def minimap_counter(seq, len_window, ksize):
+def minimap_counter(seq:str, len_window:int, ksize:int) -> dict:
+    """Counts the minimizers of a sequence
+
+    Args:
+        seq (str): DNA read
+        len_window (int): size of the sliding window
+        ksize (int): size of the kmer
+
+    Returns:
+        dict: counts of minimizers
+    """
     list_kmer_window = [0 for _ in range(len_window)]
     minimiser_list = list()
     for i in range(len(seq)-ksize-1):
