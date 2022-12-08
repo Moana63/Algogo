@@ -4,7 +4,7 @@ from main_Sisi import compress_naive, algebric_clustering, matrix_clustering, co
 from typing import Callable
 from os import listdir, system, path
 import matplotlib.pyplot as plt
-from numpy import asarray, transpose, mean, var, sqrt
+from numpy import asarray, transpose, mean, std
 from cProfile import Profile
 from memory_profiler import memory_usage
 from argparse import ArgumentParser
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     ax2.title.set_text('Fig. B : Sort function memory usage')
     ax3.title.set_text('Fig. C : Compression efficiency')
 
-    for (func, kwargs) in FUNC_TEST:
+    for i, (func, kwargs) in enumerate(FUNC_TEST):
         series_time: list = []
         series_memory: list = []
         series_du: list = []
@@ -78,20 +78,37 @@ if __name__ == "__main__":
             series_memory += [[ret['memory'] for ret in func_ret]]
             series_du += [[(path.getsize(
                 f"{f}.txt.gz")/path.getsize(f"reference/{f.split('/')[-1]}.fasta.gz"))*100 for f in clean_files]]
-        ax1.errorbar(x, [mean(serie) for serie in asarray(
-            series_time).transpose()], yerr=[sqrt(var(serie))/2 for serie in asarray(
-                series_time).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
-        ax2.errorbar(x,  [mean(serie) for serie in asarray(
-            series_memory).transpose()], yerr=[sqrt(var(serie))/2 for serie in asarray(
-                series_memory).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
-        ax3.errorbar(x,  [mean(serie) for serie in asarray(
-            series_du).transpose()], yerr=[sqrt(var(serie))/2 for serie in asarray(
-                series_du).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+        single = False
+        if len(asarray(series_time).transpose()) > 1:
+            ax1.errorbar(x, [mean(serie) for serie in asarray(
+                series_time).transpose()], yerr=[std(serie)/2 for serie in asarray(
+                    series_time).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+            ax2.errorbar(x,  [mean(serie) for serie in asarray(
+                series_memory).transpose()], yerr=[std(serie)/2 for serie in asarray(
+                    series_memory).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+            ax3.errorbar(x,  [mean(serie) for serie in asarray(
+                series_du).transpose()], yerr=[std(serie)/2 for serie in asarray(
+                    series_du).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+        else:
+            single = True
+            ax1.bar([i], [mean(serie) for serie in asarray(series_time).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_time).transpose()], align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax2.bar([i], [mean(serie) for serie in asarray(series_memory).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_memory).transpose()], align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax3.bar([i], [mean(serie) for serie in asarray(series_du).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_du).transpose()], align='center', alpha=0.5, ecolor='black', capsize=10)
 
-    handles, labels = ax1.get_legend_handles_labels()
     ax1.set_ylabel("Time (in seconds)")
     ax2.set_ylabel("Peak memory used (Mb)")
     ax3.set_ylabel("Percentage of original file size")
-    fig.legend(handles, labels, loc='upper center')
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', ncol=len(labels))
+    if single:
+        ax1.tick_params(axis='x', which='both', bottom=False,
+                        top=False, labelbottom=False)
+        ax2.tick_params(axis='x', which='both', bottom=False,
+                        top=False, labelbottom=False)
+        ax3.tick_params(axis='x', which='both', bottom=False,
+                        top=False, labelbottom=False)
     plt.savefig("test.png")
     plt.show()
