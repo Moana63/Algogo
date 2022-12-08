@@ -2,7 +2,7 @@
 
 ## In short
 
-Main purpose of this piece of software is to achieve better compression, by solely using data reorganisation, of a FASTA-like file. Across the process, we eventually lose all information apart from the lectures, as we do not keep headers in order to achieve better compression performance.
+Purpose of this piece of software is to achieve better compression, by solely using data reorganisation, of a FASTA-like file. Across the process, we eventually lose all information apart from the lectures, as we do not keep headers in order to achieve better compression performance.
 
 ## Usage
 
