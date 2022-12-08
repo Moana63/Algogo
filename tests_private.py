@@ -91,12 +91,12 @@ if __name__ == "__main__":
                     series_du).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
         else:
             single = True
-            ax1.bar([i], [mean(serie) for serie in asarray(series_time).transpose()], yerr=[std(
-                serie)/2 for serie in asarray(series_time).transpose()], align='center', alpha=0.5, ecolor='black', capsize=10)
-            ax2.bar([i], [mean(serie) for serie in asarray(series_memory).transpose()], yerr=[std(
-                serie)/2 for serie in asarray(series_memory).transpose()], align='center', alpha=0.5, ecolor='black', capsize=10)
-            ax3.bar([i], [mean(serie) for serie in asarray(series_du).transpose()], yerr=[std(
-                serie)/2 for serie in asarray(series_du).transpose()], align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax1.bar([f"{func.__name__}, {kwargs}"], [mean(serie) for serie in asarray(series_time).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_time).transpose()], label=f"{func.__name__}, {kwargs}", align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax2.bar([f"{func.__name__}, {kwargs}"], [mean(serie) for serie in asarray(series_memory).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_memory).transpose()], label=f"{func.__name__}, {kwargs}", align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax3.bar([f"{func.__name__}, {kwargs}"], [mean(serie) for serie in asarray(series_du).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_du).transpose()], label=f"{func.__name__}, {kwargs}", align='center', alpha=0.5, ecolor='black', capsize=10)
 
     ax1.set_ylabel("Time (in seconds)")
     ax2.set_ylabel("Peak memory used (Mb)")
