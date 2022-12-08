@@ -1,21 +1,19 @@
+from sort_functions import kmers_frequency, kmers_lexico, minimiser_presence_absence, minimisers_lexico, clean_fasta
 from time import process_time
-from datetime import timedelta
-from main_Sisi import compress_naive, algebric_clustering, matrix_clustering, compress_by_kmer, clean_fasta
 from typing import Callable
 from os import listdir, system, path
-import matplotlib.pyplot as plt
-from numpy import asarray, transpose, mean, std
-from cProfile import Profile
+from numpy import asarray, mean, std
 from memory_profiler import memory_usage
 from argparse import ArgumentParser
+import matplotlib.pyplot as plt
 
 FILES: list[str] = sorted([f for f in listdir(
     "Ecoli_100Kb") if f.split('.')[-1] == 'fasta'])
 FILES_NO_EXT: list[str] = [f.split('.')[0] for f in FILES]
 INPUT: list[str] = [f"Ecoli_100Kb/{p}" for p in FILES]
 OUTPUT: list[str] = [f"{inp.split('.')[0]}.txt" for inp in INPUT]
-FUNC_TEST: list[Callable] = [(compress_by_kmer, {
-                              'ksize': i, 'kmer_number': j}) for i in range(2, 6, 1) for j in range(3, 4, 1)]
+FUNC_TEST: list[Callable] = [(minimiser_presence_absence, {})]
+FUNC_NAMES: list[str] = ['legend']
 # liste qui contient des tuples. chaque tuple contient => (le nom de la fonction, ses arguments dans un dictionnaire)
 
 
@@ -82,21 +80,21 @@ if __name__ == "__main__":
         if len(asarray(series_time).transpose()) > 1:
             ax1.errorbar(x, [mean(serie) for serie in asarray(
                 series_time).transpose()], yerr=[std(serie)/2 for serie in asarray(
-                    series_time).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+                    series_time).transpose()], label=FUNC_NAMES[i], fmt='--o')
             ax2.errorbar(x,  [mean(serie) for serie in asarray(
                 series_memory).transpose()], yerr=[std(serie)/2 for serie in asarray(
-                    series_memory).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+                    series_memory).transpose()], label=FUNC_NAMES[i], fmt='--o')
             ax3.errorbar(x,  [mean(serie) for serie in asarray(
                 series_du).transpose()], yerr=[std(serie)/2 for serie in asarray(
-                    series_du).transpose()], label=f"{func.__name__}, {kwargs}", fmt='--o')
+                    series_du).transpose()], label=FUNC_NAMES[i], fmt='--o')
         else:
             single = True
-            ax1.bar([f"{func.__name__}, {kwargs}"], [mean(serie) for serie in asarray(series_time).transpose()], yerr=[std(
-                serie)/2 for serie in asarray(series_time).transpose()], label=f"{func.__name__}, {kwargs}", align='center', alpha=0.5, ecolor='black', capsize=10)
-            ax2.bar([f"{func.__name__}, {kwargs}"], [mean(serie) for serie in asarray(series_memory).transpose()], yerr=[std(
-                serie)/2 for serie in asarray(series_memory).transpose()], label=f"{func.__name__}, {kwargs}", align='center', alpha=0.5, ecolor='black', capsize=10)
-            ax3.bar([f"{func.__name__}, {kwargs}"], [mean(serie) for serie in asarray(series_du).transpose()], yerr=[std(
-                serie)/2 for serie in asarray(series_du).transpose()], label=f"{func.__name__}, {kwargs}", align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax1.bar([FUNC_NAMES[i]], [mean(serie) for serie in asarray(series_time).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_time).transpose()], label=FUNC_NAMES[i], align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax2.bar([FUNC_NAMES[i]], [mean(serie) for serie in asarray(series_memory).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_memory).transpose()], label=FUNC_NAMES[i], align='center', alpha=0.5, ecolor='black', capsize=10)
+            ax3.bar([FUNC_NAMES[i]], [mean(serie) for serie in asarray(series_du).transpose()], yerr=[std(
+                serie)/2 for serie in asarray(series_du).transpose()], label=FUNC_NAMES[i], align='center', alpha=0.5, ecolor='black', capsize=10)
 
     ax1.set_ylabel("Time (in seconds)")
     ax2.set_ylabel("Peak memory used (Mb)")

@@ -13,11 +13,12 @@ if __name__ == "__main__":
                         type=str,
                         required=True)
     parser.add_argument("--func",
-                    default='minimiser_presence_absence',
-                    const='minimiser_presence_absence',
-                    nargs='?',
-                    choices=['minimisers_lexico', 'kmers_lexico', 'kmers_frequency','minimiser_presence_absence'],
-                    help='Gives a method to sort reads.')
+                        default='minimiser_presence_absence',
+                        const='minimiser_presence_absence',
+                        nargs='?',
+                        choices=['minimisers_lexico', 'kmers_lexico',
+                                 'kmers_frequency', 'minimiser_presence_absence'],
+                        help='Gives a method to sort reads.')
     args = parser.parse_args()
 
     # Verifiying if output is valid
@@ -27,14 +28,12 @@ if __name__ == "__main__":
     # Verifying if path to output is valid, creating it
     else:
         if '/' in args.output:
-            makedirs(f"{'/'.join(args.output.split('/')[:-1])}/", exist_ok=True)
-
+            makedirs(
+                f"{'/'.join(args.output.split('/')[:-1])}/", exist_ok=True)
 
     if not path.exists(args.input) or not path.isfile(args.input):
         print(ValueError(f"Input file {args.input} does not exists."))
         exit()
 
     # Calling compress function by its name
-    getattr(sort_functions,args.func)(args.input,args.output)
-
-
+    getattr(sort_functions, args.func)(args.input, args.output)
