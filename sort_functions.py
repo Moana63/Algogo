@@ -227,7 +227,7 @@ def minimisers_lexico(input: str, output: str, reads: list = [], ksize: int = 4,
         kmer_number (int, optional): number of top common kmers. Defaults to 3.
     """
     return [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
-        [key for key, _ in minimap_counter(read, len_window, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
+        [key for key, _ in frequency_minimizer(read, ksize, len_window).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
 
 
 @write_output

@@ -7,6 +7,9 @@ intro
 
 # Fonctions générales
 
+La fonction `frequency_minimizer` consiste à retourner, pour le read donné en argument, le dictionnaire contenant les minimiseurs de ksize de long d'une fenêtre glissante sur le read de len_window de long. Pour chaque position, on récupère un minimiseur, qui se trouve inclus au dictionnaire comptabilisant ceux-ci.
+L'objet retourné est un dictionnaire, au format `minimiseur : nombre d'occurences du minimiseur` pour chaque minimiseur rencontré dans le read.
+
 Communes à toutes les fonctions.
 
 ## Nettoyage des fichiers de séquençage : clean_fasta
@@ -53,55 +56,35 @@ def some_sort_function(input: str, output: str, reads: list = []) -> list:
 
 ### Fonction principale
 ```python
-def kmers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer_number: int = 3) -> list:
-    """Sort a read file by the most present kmers each read contains
-
-    Args:
-        input (str): input file
-        output (str): output file
-        ksize (int, optional): size of kmer. Defaults to 4.
-        kmer_number (int, optional): number of top common kmers. Defaults to 3.
-    """
+[
+    reads[i] for i in
+    [
+        i for i, _ in sorted(
+            enumerate(
+                [
+                    ''.join(
+                        [
+                            key for key, _ in frequency(read, ksize).most_common(kmer_number)
+                        ]
+                    ) for read in reads
+                ]
+            ), key=lambda x:x[1]
+        )
+    ]
+]
 ```
 
-### Fonctions annexes
-```python
-
-```
-
-```python
-
-```
-
-```python
-
-```
-
+On utilise ici une compréhension de liste qui, pour chaque read, extrait les kmer_number ksize-mers les plus communs.
+Ensuite, on concatène grâce à la fonction join les kmers en une signature, que l'on trie lexicographiquement en fonction de cette signature. Enfin, par compréhension de liste, on trie les reads en fonction de l'index de la signature.
 
 ## Algorithme de fréquence des minimisers : minimisers_lexico
 
 ### Fonction principale
+
+La seule différence par rapport à `kmers_lexico` est dans l'appel à la fonction permettant d'obtenir le comptage des minimiseurs au lieu des kmers. On fait ici appel à la fonction globale `frequency_minimizer` et non `frequency`.
+
 ```python
-def minimisers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer_number: int = 3, len_window: int = 3) -> list:
-    """Sort a read file by the most present kmers each read contains
-
-    Args:
-        input (str): input file
-        output (str): output file
-        ksize (int, optional): size of kmer. Defaults to 4.
-        kmer_number (int, optional): number of top common kmers. Defaults to 3.
-    """
-```
-
-### Fonctions annexes
-```python
-
-```
-```python
-
-```
-```python
-
+frequency_minimizer(read, ksize, len_window).most_common(kmer_number)
 ```
 
 # Seconde stratégie
