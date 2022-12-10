@@ -37,6 +37,8 @@ def write_output(func) -> None:
         return None
     return wrapper
 
+####################################################### INTERMEDIARY FUNCTIONS #######################################################
+
 
 def frequency_kmer(read: str, seed_size) -> dict:
     """Returns the frequency of kmers per read
@@ -85,7 +87,7 @@ def binary(dico: dict, len_read: int, list_xmers: list, threshold: float) -> str
     return binary_seq
 
 
-def indexation(list_seq: list, seed_size: int, len_read: int = 100) -> dict:
+def indexation(list_seq: list, seed_size: int, len_read: int) -> dict:
     """Index all the read sequences from the fasta file according to their identifier.
     The identifier is a sequence of 0 and 1 linked to the proportions of différent kmers in the read sequence.
 
@@ -95,8 +97,8 @@ def indexation(list_seq: list, seed_size: int, len_read: int = 100) -> dict:
         a list containing all the read sequence from the fasta file
     seed_size : int
         the size k of the kmer
-    len_read : int, optional
-        the length of the read sequences in the file, by default 100
+    len_read : int
+        the length of the read sequences in the file
 
     Returns
     -------
@@ -173,7 +175,7 @@ def binary_minimisers(dico: dict, list_xmers: list) -> str:
     return binary_seq
 
 
-def indexation_minimisers(list_seq: list, seed_size: int, len_window: int = 33) -> dict:
+def indexation_minimisers(list_seq: list, seed_size: int, len_window: int) -> dict:
     """Index all the read sequences from the fasta file according to their identifier. 
     The identifier is a sequence of 0 and 1 linked to the presence of different minimisers in the read sequence.
 
@@ -183,6 +185,8 @@ def indexation_minimisers(list_seq: list, seed_size: int, len_window: int = 33) 
         a list containing all the read sequence from the fasta file
     seed_size : int
        the size of the minimiser
+    len_window : int
+        size of the windo we seek minimizers in
 
     Returns
     -------
@@ -201,9 +205,11 @@ def indexation_minimisers(list_seq: list, seed_size: int, len_window: int = 33) 
             index[binary_seq] = [i]
     return index
 
+####################################################### SORT FUNCTIONS #######################################################
+
 
 @write_output
-def minimisers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer_number: int = 3, len_window: int = 3) -> list:
+def minimisers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer_number: int = 3, len_window: int = 33) -> list:
     """Sort a read file by the most present kmers each read contains
 
     Args:
@@ -251,7 +257,7 @@ def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 
         the list containing the sorted reads
 
     """
-    index = indexation(reads, seed_size)
+    index = indexation(reads, seed_size, len(reads[0]))
     return list(chain(*[[reads[int(seq)] for seq in index[key]] for key in sorted(index.keys())]))
 
 

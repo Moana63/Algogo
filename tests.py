@@ -7,14 +7,17 @@ from memory_profiler import memory_usage
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
-FILES: list[str] = sorted([f for f in listdir(
-    "Ecoli_100Kb") if f.split('.')[-1] == 'fasta'])
+# reference files
+FOLDER: str = "Ecoli_100Kb"
+FILES: list[str] = sorted(
+    [f for f in listdir(FOLDER) if f.split('.')[-1] == 'fasta'])
 FILES_NO_EXT: list[str] = [f.split('.')[0] for f in FILES]
-INPUT: list[str] = [f"Ecoli_100Kb/{p}" for p in FILES]
+INPUT: list[str] = [f"{FOLDER}/{p}" for p in FILES]
 OUTPUT: list[str] = [f"{inp.split('.')[0]}.txt" for inp in INPUT]
-FUNC_TEST: list[Callable] = [(minimiser_presence_absence, {})]
-FUNC_NAMES: list[str] = ['legend']
-# liste qui contient des tuples. chaque tuple contient => (le nom de la fonction, ses arguments dans un dictionnaire)
+# list of tuples. each tuple contains => (func, {**kwargs})
+FUNC_TEST: list[Callable] = [(kmers_lexico, {'ksize': 2, 'kmer_number': 3})]
+# function names for plot
+FUNC_NAMES: list[str] = ['ksize : 2']
 
 
 def timer(func):
@@ -31,11 +34,25 @@ def timer(func):
 
 
 @timer
-def my_tester(func: Callable, input: str, output: str, kwargs: dict) -> None:
+def my_tester(func: Callable, input: str, output: str, kwargs: dict) -> dict:
+    """aggregates results in a single dict
+
+    Args:
+        func (Callable): function to be executed
+        input (str): file input
+        output (str): file output
+        kwargs (dict): all the keywords arguments for func
+
+    Returns:
+        dict: infos for plots
+    """
     return {'memory': max(memory_usage((func, [input, output], kwargs))), 'file': output}
 
 
 def compute_reference():
+    """
+    Creates a set of reference files for compression estimation
+    """
     for inp in INPUT:
         reads: list = clean_fasta(inp)
         with open(f"reference/{inp.split('/')[-1]}", 'w') as writer:
@@ -56,12 +73,12 @@ if __name__ == "__main__":
         system("mkdir reference/")
         compute_reference()
 
-    fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, nrows=1, figsize=(15, 10))
+    fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, nrows=1, figsize=(40, 10))
     ax1.title.set_text('Fig. A : Sort function time spent')
     ax2.title.set_text('Fig. B : Sort function memory usage')
     ax3.title.set_text('Fig. C : Compression efficiency')
 
-    for i, (func, kwargs) in enumerate(FUNC_TEST):
+    for i, (func, kwargs) in enumerate(FUNC_TEST):  # iterating over all funcs
         series_time: list = []
         series_memory: list = []
         series_du: list = []
@@ -76,6 +93,7 @@ if __name__ == "__main__":
             series_memory += [[ret['memory'] for ret in func_ret]]
             series_du += [[(path.getsize(
                 f"{f}.txt.gz")/path.getsize(f"reference/{f.split('/')[-1]}.fasta.gz"))*100 for f in clean_files]]
+        # info if we work on a single reference file or multiple to change plot style
         single = False
         if len(asarray(series_time).transpose()) > 1:
             ax1.errorbar(x, [mean(serie) for serie in asarray(
@@ -108,5 +126,5 @@ if __name__ == "__main__":
                         top=False, labelbottom=False)
         ax3.tick_params(axis='x', which='both', bottom=False,
                         top=False, labelbottom=False)
-    plt.savefig("test.png")
+    plt.savefig("report.png")
     plt.show()
