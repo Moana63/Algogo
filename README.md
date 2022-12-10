@@ -40,9 +40,9 @@ options:
   --seed_size SEED_SIZE
                         (int) Defines a size for words we order by. Default is 4.
   --len_window LEN_WINDOW
-                        (int) Defines a size for windows we go by. Default is 3.
+                        (int) Defines a size for windows we go by. Default is 33.
   --seed_number SEED_NUMBER
-                        (int) Defines a number of words we order by. Default is 33.
+                        (int) Defines a number of words we order by. Default is 3.
 ```
 
 The `--func` argument allows you to pick a method to reorder the FASTA-like file.
