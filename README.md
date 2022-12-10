@@ -10,15 +10,25 @@ In order to use the software, you have to provide a `.fasta` file and a output t
 Then, you may specify a compression method. Default is `minimiser_presence_absence`, which achieves the best results across all tested scenarios.
 
 ```bash
-read_organizer.py [-h] -i INPUT -o OUTPUT [--func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]] [--seed_size SEED_SIZE] [--len_window LEN_WINDOW]
-                         [--seed_number SEED_NUMBER]
+read_organizer.py [-h] -i INPUT -o OUTPUT
+      [--func
+        [{
+          minimisers_lexico,
+          kmers_lexico,
+          kmers_frequency,
+          minimiser_presence_absence
+        }]
+      ]
+      [--seed_size SEED_SIZE]
+      [--len_window LEN_WINDOW]
+      [--seed_number SEED_NUMBER]
 ```
 
 ## Parameters
 
 Command-line tool allows you to interact with the software with those arguments :
 
-```bash
+```
 options:
   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
