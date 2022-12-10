@@ -28,7 +28,7 @@ Cela permet d'implémenter toute autre nouvelle méthode de tri sans avoir à se
 
 ```python
 @write_output
-def some_sort_function(input: str, output: str, reads: list = []) -> list:
+def func(input: str, output: str, reads: list = [], ... , **kwargs) -> list:
 ```
 Afin d'ajouter une nouvelle fonction de tri, après implémentation, il faut la décorer et donner son nom à `PARSER_FUNCTIONS` pour qu'il la propose dans la liste de ses choix.
 

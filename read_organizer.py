@@ -18,6 +18,12 @@ if __name__ == "__main__":
                         nargs='?',
                         choices=sort_functions.PARSER_FUNCTIONS,
                         help='Gives a method to sort reads.')
+    parser.add_argument("--seed_size", default=4,
+                        help='Defines a size for words we order by.')
+    parser.add_argument("--len_window", default=33,
+                        help='Defines a size for windows we go by.')
+    parser.add_argument("--seed_number", default=3,
+                        help='Defines a number of words we order by.')
     args = parser.parse_args()
 
     # Verifiying if output is valid
@@ -35,4 +41,5 @@ if __name__ == "__main__":
         exit()
 
     # Calling compress function by its name
-    getattr(sort_functions, args.func)(args.input, args.output)
+    getattr(sort_functions, args.func)(args.input, args.output, kwargs={
+        'seed_size': args.seed_size, 'len_window': args.len_window, 'seed_number': args.seed_number})

@@ -10,7 +10,8 @@ In order to use the software, you have to provide a `.fasta` file and a output t
 Then, you may specify a compression method. Default is `minimiser_presence_absence`, which achieves the best results across all tested scenarios.
 
 ```bash
-read_organizer.py [-h] -i INPUT -o OUTPUT [--func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]]
+read_organizer.py [-h] -i INPUT -o OUTPUT [--func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]] [--seed_size SEED_SIZE] [--len_window LEN_WINDOW]
+                         [--seed_number SEED_NUMBER]
 ```
 
 ## Parameters
@@ -26,9 +27,17 @@ options:
                         Path to a txt file, output of the program
   --func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]
                         Gives a method to sort reads. Default is 'minimiser_presence_absence'.
+  --seed_size SEED_SIZE
+                        Defines a size for words we order by.
+  --len_window LEN_WINDOW
+                        Defines a size for windows we go by.
+  --seed_number SEED_NUMBER
+                        Defines a number of words we order by.
 ```
 
 The `--func` argument allows you to pick a method to reorder the FASTA-like file.
+
+If a optional parameter is given but not used by the implementation of the given selected function, the parameter will be ignored.
 
 ### --func minimiser_presence_absence (default)
 

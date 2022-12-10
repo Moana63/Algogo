@@ -209,35 +209,36 @@ def indexation_minimisers(list_seq: list, seed_size: int, len_window: int) -> di
 
 
 @write_output
-def minimisers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer_number: int = 3, len_window: int = 33) -> list:
+def minimisers_lexico(input: str, output: str, reads: list = [], seed_size: int = 4, seed_number: int = 3, len_window: int = 33, **kwargs) -> list:
+    """Sort a read file by the most present minimizers each read contains
+
+    Args:
+        input (str): input file
+        output (str): output file
+        seed_size (int, optional): size of minimizers. Defaults to 4.
+        seed_number (int, optional): number of top common minimizers. Defaults to 3.
+        len_window (int,optional): the length of the sliding window to extract the minimiser from the sequence, by default 33, which is the best option identified experimentally
+    """
+    return [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
+        [key for key, _ in frequency_minimizer(read, seed_size, len_window).most_common(seed_number)]) for read in reads]), key=lambda x:x[1])]]
+
+
+@write_output
+def kmers_lexico(input: str, output: str, reads: list = [], seed_size: int = 4, seed_number: int = 3, **kwargs) -> list:
     """Sort a read file by the most present kmers each read contains
 
     Args:
         input (str): input file
         output (str): output file
-        ksize (int, optional): size of kmer. Defaults to 4.
-        kmer_number (int, optional): number of top common kmers. Defaults to 3.
+        seed_size (int, optional): size of kmer. Defaults to 4.
+        seed_number (int, optional): number of top common kmers. Defaults to 3.
     """
     return [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
-        [key for key, _ in frequency_minimizer(read, ksize, len_window).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
+        [key for key, _ in frequency_kmer(read, seed_size).most_common(seed_number)]) for read in reads]), key=lambda x:x[1])]]
 
 
 @write_output
-def kmers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer_number: int = 3) -> list:
-    """Sort a read file by the most present kmers each read contains
-
-    Args:
-        input (str): input file
-        output (str): output file
-        ksize (int, optional): size of kmer. Defaults to 4.
-        kmer_number (int, optional): number of top common kmers. Defaults to 3.
-    """
-    return [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
-        [key for key, _ in frequency_kmer(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
-
-
-@write_output
-def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 4) -> list:
+def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 4, **kwargs) -> list:
     """Sort a read file by the kmers content of each read
 
     Parameters
@@ -262,7 +263,7 @@ def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 
 
 
 @write_output
-def minimiser_presence_absence(input: str, output: str, reads: list = [], seed_size: int = 4, len_window: int = 33) -> list:
+def minimiser_presence_absence(input: str, output: str, reads: list = [], seed_size: int = 4, len_window: int = 33, **kwargs) -> list:
     """Sort a read file by the minimisers content of each read
 
     Parameters
@@ -276,7 +277,7 @@ def minimiser_presence_absence(input: str, output: str, reads: list = [], seed_s
     seed_size : int, optional
         the size of kmer, used to sort the reads, by default 4, which is the best option identified experimentally
     len_window : int, optional
-        the length of the sliding window to xtract the minimiser from the sequence, by default 33, which is the best option identified experimentally
+        the length of the sliding window to extract the minimiser from the sequence, by default 33, which is the best option identified experimentally
 
     Returns
     -------
