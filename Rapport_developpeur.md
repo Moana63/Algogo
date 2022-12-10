@@ -3,38 +3,24 @@
 ## Structure générale du code 
 
 Le programme se découpe en trois fichiers distincts.
-Le script `read_organizer.py` contient le parser en ligne de commande nécessaire pour lancer la compression d'un fichier. Après vérification des arguments, il exécute une fonction contenue dans `sort_functions.py`.
+Le script `read_organizer.py` contient le parser en ligne de commande nécessaire pour lancer la compression d'un fichier. Après vérification des arguments fournis par l'utilisateur, il exécute une fonction contenue dans `sort_functions.py`. Grâce à l'import de `sort_functions.py` dans `read_organizer.py`, la fonction `getattr(sort_functions, args.func)(...)` permet de lancer, depuis le nom de fonction donné en argument, la fonction correspondante dans le fichier contenant les fonctions de tri.
 
-Grâce à l'import de `sort_functions.py` dans `read_organizer.py`, la fonction `getattr(sort_functions, args.func)()` permet de lancer, depuis le nom de fonction donné en argument, la fonction correspondante dans le fichier contenant les fonctions de tri.
+Le script `tests.py` permet d'analyser les comportements en temps, en mémoire et en compression des fonctions implémentées dans `sort_functions.py`. Il ne sera pas détaillé en profondeur dans ce rapport ; en quelques mots, son fonctionnement repose sur le passage d'une liste de tuples `(func, {**kwargs})` qui seront les fonctions avec leurs paramètres à tester, et le code itère *n* fois à travers tous les fichiers fournis en test pour fournir des figures présentant la moyenne de ces itérations avec respect à l'écart-type en barre d'erreur.
 
-## Fonctions générales
-
-En ce segment seront détaillées les fonctions utilisées par plusieurs autres fonctions de tri.
+## Fonctions partagées
 
 ### Comptage d'occurences dans des chaînes
 
-La fonction `frequency_kmer` consiste à retourner, pour le read donné en argument, le dictionnaire contenant les kmers de ksize de long. Pour chaque position, on récupère un kmer, qui se trouve inclus au dictionnaire comptabilisant ceux-ci.
-L'objet retourné est un dictionnaire, au format `kmer : nombre d'occurences du kmer` pour chaque kmer rencontré dans le read.
-
-La fonction `frequency_minimizer` consiste à retourner, pour le read donné en argument, le dictionnaire contenant les minimiseurs de ksize de long d'une fenêtre glissante sur le read de len_window de long. Pour chaque position, on récupère un minimiseur, qui se trouve inclus au dictionnaire comptabilisant ceux-ci.
-L'objet retourné est un dictionnaire, au format `minimiseur : nombre d'occurences du minimiseur` pour chaque minimiseur rencontré dans le read.
+Les fonctions `frequency_kmer` et `frequency_minimizer` consistent à retourner, pour le read donné en argument, le dictionnaire contenant respectivement les kmers de ksize de long, et les minimiseurs de ksize de long d'une fenêtre glissante sur le read de len_window de long. Pour chaque position, on récupère un kmer/minimiseur, qui se trouve inclus au dictionnaire comptabilisant ceux-ci.
+L'objet retourné est un dictionnaire, au format `kmer/minimiseur : nombre d'occurences du kmer/minimiseur` pour chaque kmer/minimiseur rencontré dans le read.
 
 ### Nettoyage des fichiers de séquençage
 
-La fonction `clean_fasta` prend en entrée un chemin vers un fichier FASTA-like valide, et se chage de le charger en une liste. Attention, pour de très grands fichiers ne rentrant pas dans la mémoire, une telle méthode ne serait pas appropriée, et il faudrait renvoyer le contenu du fichier en tant que générateur. La fonction nettoire toutes leslignes précédées de chevrons (headers) et nettoire les éventuels espaces et retours à la ligne.
+La fonction `clean_fasta` prend en entrée un chemin vers un fichier FASTA-like valide, et se charge de le retourner en une liste. Attention, pour de très grands fichiers ne rentrant pas dans la mémoire, une telle méthode ne serait pas appropriée, et il faudrait renvoyer le contenu du fichier en tant que générateur. La fonction nettoire toutes les lignes précédées de chevrons (headers) et nettoie les éventuels espaces et retours à la ligne.
 
 ### Gestion des entrées/sorties
 
-Le traitement des entrées/sorties s'effectue via une fonction utilisée en tant que décorateur.
-
-```python
-def write_output(func) -> None:
-    """Decorator to read input file as a list of reads, and writing out the returned list to the output
-    Args: func (Callable): Targeted function to order reads. Must return a list
-    """
-```
-
-On ajoute aux paramètres de `func` la liste des reads contenus dans le fichier (appel à `clean_fasta`)
+Le traitement des entrées/sorties s'effectue via une fonction `write_output(func)` utilisée en tant que décorateur. On ajoute aux paramètres de `func` la liste des reads contenus dans le fichier (appel à `clean_fasta`).
 L'écriture dans le fichier de sortie est appelé sur le retour de la fonction `func` décorée.
 Cela permet d'implémenter et de maintenir facilement les vérifications sur les fichiers d'entrée et de sortie, sans impacter la capacité à mesurer la mémoire et le temps requis pour l'exécution de l'algorithme de tri.
 
@@ -43,216 +29,52 @@ Cela permet d'implémenter toute autre nouvelle méthode de tri sans avoir à se
 ```python
 @write_output
 def some_sort_function(input: str, output: str, reads: list = []) -> list:
-    """ input : (str) the FASTA-like file to sort
-        output : (str) the sorted file
-        reads : (list, optional) reads extracted by the decorator
-        Returns : (list) the list containing the sorted reads
-    """
 ```
-Afin d'ajouer une nouvelle fonction de tri, après implémentation, il faut la décorer et donner son nom à `PARSER_FUNCTIONS` pour qu'il la propose dans la liste de ses choix.
+Afin d'ajouter une nouvelle fonction de tri, après implémentation, il faut la décorer et donner son nom à `PARSER_FUNCTIONS` pour qu'il la propose dans la liste de ses choix.
 
 ## Fonctions de tri
 
-### Algorithme de fréquence des kmers : kmers_lexico
+### Algorithme d'occurences des kmers : kmers_lexico
+
+
+
+La fonction principale `kmers_lexico` repose sur une compréhension de liste qui, pour chaque read, extrait une signature formée des *kmer_number*, *ksize*-mers les plus communs.
 
 ```python
-[
-    reads[i] for i in
-    [
-        i for i, _ in sorted(
-            enumerate(
-                [
-                    ''.join(
-                        [
-                            key for key, _ in frequency(read, ksize).most_common(kmer_number)
-                        ]
-                    ) for read in reads
-                ]
-            ), key=lambda x:x[1]
-        )
-    ]
-]
+[reads[i] for i in [i for i, _ in sorted(enumerate([''.join([key for key, _ in frequency_kmer(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
 ```
 
-On utilise ici une compréhension de liste qui, pour chaque read, extrait les kmer_number ksize-mers les plus communs.
-Ensuite, on concatène grâce à la fonction join les kmers en une signature, que l'on trie lexicographiquement en fonction de cette signature. Enfin, par compréhension de liste, on trie les reads en fonction de l'index de la signature.
+On récupère ainsi le nombre souhaité de kmers les plus présents ainsi que leur nombre d'occurences dans la séquence avec `frequency_kmer(read, ksize).most_common(kmer_number)`. Puis, on filtre afin de ne conserver que les kmers par ordre de présence avec la compréhension `[key for key, _ in sorted_counter]`. Ensuite, on concatène grâce à la fonction `join` les *n* kmers en une signature, que l'on trie lexicographiquement selon cette signature en fonction de l'index de la signature avec `sorted(list,key=lambda x:x[1])` qui se trouve à la position 1 de chaque tuple. On récupère une liste de positions, et on construit la liste en récupérant chaque read à la position `i` pour chaque position dans la liste de positions, ce qui réordonne nos reads pour la sortie.
 
-### Algorithme de fréquence des minimisers : minimisers_lexico
+### Algorithme d'occurences des minimisers : minimisers_lexico
 
-La seule différence par rapport à `kmers_lexico` est dans l'appel à la fonction permettant d'obtenir le comptage des minimiseurs au lieu des kmers. On fait ici appel à la fonction globale `frequency_minimizer` et non `frequency`.
+La seule différence dans la fonction principale `minimisers_lexico` par rapport à `kmers_lexico` est dans l'appel à la fonction permettant d'obtenir le comptage des minimiseurs au lieu des kmers. On fait ici appel à la fonction globale `frequency_minimizer` et non `frequency_kmer` dans l'appel `frequency_minimizer(read, ksize, len_window).most_common(kmer_number)`
 
-```python
-frequency_minimizer(read, ksize, len_window).most_common(kmer_number)
-```
 
 ### Algorithme de fréquence des kmers : kmers_frequency
 
+La fonction principale `kmers_frequency` récupère un dictionnaire indexant les reads à partir des fonctions annexes, l'index contient la métrique associé aux reads. Cette métrique est une séquence de 0 et de 1 rendant compte de façon simplifiée des proportions en kmers de la séquence. Les reads sont stockés via leur index dans la liste `reads` qui contient tous les reads du fichier, non triés. Cela permet d'économiser en mémoire. La fonction retourne ensuite une liste, contenant les reads triés par ordre alphanumérique. Elle est calculée de la façon suivante:
+
 ```python
-def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 4) -> list:
-    """Sort a read file by the kmers content of each read
-
-    Parameters
-    ----------
-    input : str
-        the file to sort
-    output : str
-        the sorted file
-    reads : list, optional
-        a list containing all the reads extracted from the input file, by default []
-    seed_size : int, optional
-        the size of kmer, used to sort the reads, by default 4, which is the best option identified experimentally
-
-    Returns
-    -------
-    list
-        the list containing the sorted reads
-
-    """
+list(chain(*[[reads[int(seq)] for seq in index[key]] for key in sorted(index.keys())]))
 ```
-Cette fonction récupère un dictionnaire indexant les reads à partir des fonctions annexes, l'index contient la métrique associé aux reads. Cette métrique est une séquence de 0 et de 1 rendant compte de façon simplifiée des proportions en kmers de la séquence. Les reads sont stockés via leur index dans la liste "reads" qui contient tous les reads du fichier, non triés. Cela permet d'économiser en mémoire. La fonction retourne ensuite une liste, contenant les reads triés par ordre alphanumérique. Elle est calculée de la façon suivante:
 
-```python list(chain(*[[reads[int(seq)] for seq in index[key]] for key in sorted(index.keys())]))```
-
-La boucle ```python for key in sorted(index.keys()``` tri les clés dans l'ordre alphanumérique. La boucle ```[[reads[int(seq)]for seq in index[key]]``` récupère les valeurs associées à chaque clé (leur position dans la liste reads) et renvoi les reads associés. On obtient à cette étape une liste contenant des listes. La méthode "chain*" permet d'applatir la liste en itérant avec "*" sur toutes les listes que contient la liste.
+La boucle `for key in sorted(index.keys()` trie les clés dans l'ordre alphanumérique. La boucle `[[reads[int(seq)]for seq in index[key]]` récupère les valeurs associées à chaque clé (leur position dans la liste reads) et renvoie les reads associés. On obtient à cette étape une liste contenant des listes. La méthode `chain*` permet d'applatir la liste en itérant avec `*` sur toutes les listes que contient la liste.
 On pourrait choisir de trier les reads au moment de les écrire dans le fichier pour éviter de les stocker dans une liste, mais le choix a été fait d'avoir une seule fonction commune pour écrire le fichier trié et de faire moins d'action d'écriture dans le fichier d'output.
 
-### Fonctions annexes
-```python
-def indexation(list_seq: list, seed_size: int, len_read: int = 100) -> dict:
-    """Index all the read sequences from the fasta file according to their identifier.
-    The identifier is a sequence of 0 and 1 linked to the proportions of différent kmers in the read sequence.
+La fonction `indexation` génère le dictionnaire indexant les reads. Elle commence par récupérer un dictionnaire pour chaque read, contenant les kmers présents dans le read ainsi que leur nombre d'occurences. Elle simplifie ensuite le nombre d'occurences, en le passant à 1 si il est supérieur à un seuil, ou à 0 sinon et récupérant le résultat sous la forme d'une séquence de 0 et de 1. Elle ajoute ensuite cette séquence dans le dictionnaire si elle n'existe pas encore et ajoute la position associée au read dans la liste des valeurs du dictionnaire.
+On génère au début de la fonction `list_xmers` qui contient toutes les combinaisons de kmers possibles, de facon à s'en servir de référence pour que les positions de 0 et de 1 dans la séquence générée correspondent aux mêmes kmers pour tous les reads.
 
-    Parameters
-    ----------
-    list_seq : list
-        a list containing all the read sequence from the fasta file
-    seed_size : int
-        the size k of the kmer
-    len_read : int, optional
-        the length of the read sequences in the file, by default 100
+La fonction `binary` prend en entrée le dictionnaire contenant les occurences de kmers et permet de simplifier ce nombre d'occurences, en les passant à 1 si ils sont supérieurs à un seuil, ou à 0 sinon. Elle renvoie le résultat sous la forme d'une séquence de 0 et de 1. On considère ici que si le nombre d'occurences du kmer est supérieur au nombre d'occurences si les kmers étaient répartis da façon uniforme dans la séquence, alors ce kmer est surreprésenté et il sera associé à la valeur 1. Le calcul du seuil représente cette répartition uniforme théorique.
 
-    Returns
-    -------
-    dict
-        an index with the identifier sequence of 0 and 1 as key and a list of the indexes in list_seq of the corresponding reads as values.
-    """
-```
-Cette fonction génère le dictionnaire indexant les reads. Elle commence par récupérer un dictionnaire pour chaque read, contenant les kmers présents dans le read ainsi que leur nombre d'occurences. Elle simplifie ensuite le nombre d'occurence, en le passant à 1 si il est supèrieur à un seuil, ou à 0 sinon et récupérant le résultat sous la forme d'une séquence de 0 et de 1. Elle ajoute ensuite cette séquence dans le dictionnaire si elle n'existe pas encore et ajoute la position associée au read dans la liste des valeurs du dictionnaire.
-On génère au début de la fonction "list_xmers" qui contient toutes les combinaisons de kmers possibles, de facon à s'en servir de référence pour que les positions de 0 et de 1 dans la séquence générée correspondent aux mêmes kmers pour tous les reads.
+### Algorithme de présence/absence des kmers : minimiser_presence_absence
 
-```python
-def binary(dico: dict, len_read: int, list_xmers: list, threshold: float) -> str:
-    """Take the proportions of each possible kmers in the sequence and returns a sequence of 0 and 1.
-    For each kmer proportion, if the proportion is superior to the threshold, a 1 is added to the sequence. Else, a 0 is added.
+La fonction principale `minimiser_presence_absence` fonctionne de la même façon que la fonction principale `kmers_frequency`. Le différence réside dans le fait que cette fois-ci on récupère un nombre d'occurences de minimiseurs plutôt que de kmers et qu'on simplifie le problème en se basant sur la présence/absence de ces minimiseurs dans la séquence plutôt que leur fréquence d'apparition.  
 
-    Parameters
-    ----------
-    dico : dict
-        a dictionnary containing the proportions of each different kmers encountered in a sequence.
-    len_read : int
-        The length of the sequence
-    list_xmers : list
-        the list of all possible kmers of size k
-    threshold : float
-        the threshold above which the kmer proportion will be put to 1 and under which it will be put to 0.
-    Returns
-    -------
-    str
-        the sequence of 0 and 1 as a simplification of the proportions of kmers
-    """
-```
-Cette fonction prend en entrée le dictionnaire contenant les occurences de kmers et permet de simplifier ce nombre d'occurences, en les passant à 1 si ils sont supèrieurs à un seuil, ou à 0 sinon. Elle renvoi le résultat sous la forme d'une séquence de 0 et de 1. On considère ici que si le nombre d'occurences du kmer est supèrieur au nombre d'occurence si les kmers étaient répartis da façon uniforme dans la séquence, alors ce kmer est surreprésenté et il sera associé à la valeure 1. Le calcul du seuil représente cette répartition uniforme théorique.
+La fonction `indexation_minimisers` fonctionne sur le même principe que la fonction annexe `indexation`, mais s'applique sur les minimiseurs et non les kmers.
 
-Utilise aussi la fonction frequency qui est commune aux 2 stratégies => CF
+La fonction `binary_minimisers` fonctionne sur le même principe que la fonction annexe `binary`, à la différence qu'on ne calcule pas de seuil, si le minimiseur est présent dans le read on ajoute un 1 à la séquence, sinon un 0.
 
-## Algorithme de présence/absence des kmers : minimiser_presence_absence
-
-### Fonction principale
-```python
-def minimiser_presence_absence(input: str, output: str, reads: list = [], seed_size: int = 4, len_window: int = 33) -> list:
-    """Sort a read file by the minimisers content of each read
-
-    Parameters
-    ----------
-    input : str
-        the file to sort
-    output : str
-        the sorted file
-    reads : list, optional
-        a list containing all the reads extracted from the input file, by default []
-    seed_size : int, optional
-        the size of kmer, used to sort the reads, by default 4, which is the best option identified experimentally
-    len_window : int, optional
-        the length of the sliding window to xtract the minimiser from the sequence, by default 33, which is the best option identified experimentally
-
-    Returns
-    -------
-    list
-        the list containing the sorted reads
-    """
-```
-Cette fonction fonctionne de la même façon que la fonction principale 'kmers_frequency'. Le différence réside dans le fait que cette fois ci on récupère un nombre d'occurence de minimiseurs plutôt que de kmers et qu'on simplifie le problème en se basant sur la présence / absence de ces minimiseurs dans la séquence plutôt que leur fréquence d'apparition.  
-
-### Fonctions annexes
-```python
-def indexation_minimisers(list_seq: list, seed_size: int, len_window: int = 33) -> dict:
-    """Index all the read sequences from the fasta file according to their identifier. 
-    The identifier is a sequence of 0 and 1 linked to the presence of different minimisers in the read sequence.
-
-    Parameters
-    ----------
-    list_seq : list
-        a list containing all the read sequence from the fasta file
-    seed_size : int
-       the size of the minimiser
-
-    Returns
-    -------
-    dict
-        an index with the identifier sequence of 0 and 1 as key and a list of the indexes in list_seq of the corresponding reads as values. 
-    """
-```
-Cette fonction fonctionne sur le même principe que la fonction annexe 'indexation'.
-
-```python
-def binary_minimisers(dico: dict, list_xmers: list) -> str:
-    """Take the proportions of each possible minimisers in the sequence and returns a sequence of 0 and 1. 
-    For each minimisers proportion, if the minimiser is present, a 1 is added to the sequence. Else, a 0 is added.
-
-    Parameters
-    ----------
-    dico : dict
-        a dictionnary containing the proportions of each different minimisers encountered in a sequence.
-    list_xmers : list
-        the list of all possible minimisers
-
-    Returns
-    -------
-    str
-        the sequence of 0 and 1 as a simplification of the presence and absence of minimisers
-    """
-```
-Cette fonction fonctionne sur le même principe que la fonction annexe 'binary', à la différence qu'on ne calcul pas de seuil, si le minimiseur est présent dans le read on ajoute un 1 à la séquence, sinon un 0.
-
-```python
-def frequency_minimizer(read: str, seed_size: int, len_window: int) -> dict:
-    """Returns the frequency of minimisers per read
-
-    Parameters
-    ----------
-    read : str
-        a DNA read
-    seed_size : int
-        size of the minimiser
-    len_window : int, optional
-        length of the window sliding on the sequence, by default 10
-
-    Returns
-    -------
-    dict
-        a dictionnary containing the minimisers encountered in the sequence as key and their number of occurences as values
-    """
-```
-Cette fonction fonctionne sur le même principe que la fonction annexe 'frequency', en incluant une fenêtre glissante qui parcourt la séquence et dont on peut ajuster la taille. 
+La fonction `frequency_minimizer` fonctionne sur le même principe que la fonction annexe `frequency_kmer`, en incluant une fenêtre glissante qui parcourt la séquence et dont on peut ajuster la taille. 
 Le minimiseur est récupéré en listant tous les kmers présents dans la fenêtre et en récupérant le plus petit (ordre lexicographique). On récupère aussi sa position j dans la séquence.
-Pour améliorer la vitesse de parcourt de la séquence, le terme `python i += minimiser[1] + 1` afin d'accélérer le parcourt de la séquence par la fenêtre glissante. Dés que l'on a trouvé un minimiseur, on déplace la fenêtre de façon à dépasser ce minimiseur avant de recommencer à en chercher un. On utilise pour cela la position 'j' du minimiseur dans la séquence stocké dans `python minimiseur[1]`.
+Pour améliorer la vitesse de parcours de la séquence par la fenêtre glissante, le terme  `i += minimiser[1] + 1` est utlilisé. Dés que l'on a trouvé un minimiseur, on déplace la fenêtre de façon à dépasser ce minimiseur avant de recommencer à en chercher un. On utilise pour cela la position `j` du minimiseur dans la séquence stocké dans `minimiseur[1]`.
