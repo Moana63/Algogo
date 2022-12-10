@@ -22,35 +22,41 @@ Command-line tool allows you to interact with the software with those arguments 
 options:
   -h, --help            show this help message and exit
   -i INPUT, --input INPUT
-                        Path to a fasta-like file to re-order
+                        (str) Path to a fasta-like file to re-order
   -o OUTPUT, --output OUTPUT
-                        Path to a txt file, output of the program
+                        (str) Path to a txt file, output of the program
   --func [{minimisers_lexico,kmers_lexico,kmers_frequency,minimiser_presence_absence}]
-                        Gives a method to sort reads. Default is 'minimiser_presence_absence'.
+                        (str) Gives a method to sort reads. Default is 'minimiser_presence_absence'.
   --seed_size SEED_SIZE
-                        Defines a size for words we order by.
+                        (int) Defines a size for words we order by. Default is 4.
   --len_window LEN_WINDOW
-                        Defines a size for windows we go by.
+                        (int) Defines a size for windows we go by. Default is 3.
   --seed_number SEED_NUMBER
-                        Defines a number of words we order by.
+                        (int) Defines a number of words we order by. Default is 33.
 ```
 
 The `--func` argument allows you to pick a method to reorder the FASTA-like file.
 
 If a optional parameter is given but not used by the implementation of the given selected function, the parameter will be ignored.
 
+Optional parameters are set by default as best as we experimented on 100 bp-lengthed reads, thus further exploration would be required on differently-sized reads.
+
 ### --func minimiser_presence_absence (default)
 
 This method uses the presence or absence of minimizers, given a read-specific threshold, to reorder the file.
+Accepts `seed_size` and `len_window` as optional parameters. Default values are resp. 4 and 33.
 
 ### --func minimisers_lexico
 
 This method uses the lexicographical order of most common minimizers to reorder the file.
+Accepts `seed_size`, `seed_number` and `len_window` as optional parameters. Default values are resp. 4, 3 and 33.
 
 ### --func kmers_frequency
 
 This method uses the frequency of kmers, given a read-specific threshold, to reorder the file.
+Accepts `seed_size` as optional parameter. Default value is 4.
 
 ### --func kmers_lexico
 
 This method uses the lexicographical order of most common kmers to reorder the file.
+Accepts `seed_size` and `seed_number` as optional parameters. Default values are resp. 4 and 3.
