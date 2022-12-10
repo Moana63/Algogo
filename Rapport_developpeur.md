@@ -34,23 +34,6 @@ Afin d'ajouter une nouvelle fonction de tri, après implémentation, il faut la 
 
 ## Fonctions de tri
 
-### Algorithme d'occurences des kmers : kmers_lexico
-
-
-
-La fonction principale `kmers_lexico` repose sur une compréhension de liste qui, pour chaque read, extrait une signature formée des *kmer_number*, *ksize*-mers les plus communs.
-
-```python
-[reads[i] for i in [i for i, _ in sorted(enumerate([''.join([key for key, _ in frequency_kmer(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
-```
-
-On récupère ainsi le nombre souhaité de kmers les plus présents ainsi que leur nombre d'occurences dans la séquence avec `frequency_kmer(read, ksize).most_common(kmer_number)`. Puis, on filtre afin de ne conserver que les kmers par ordre de présence avec la compréhension `[key for key, _ in sorted_counter]`. Ensuite, on concatène grâce à la fonction `join` les *n* kmers en une signature, que l'on trie lexicographiquement selon cette signature en fonction de l'index de la signature avec `sorted(list,key=lambda x:x[1])` qui se trouve à la position 1 de chaque tuple. On récupère une liste de positions, et on construit la liste en récupérant chaque read à la position `i` pour chaque position dans la liste de positions, ce qui réordonne nos reads pour la sortie.
-
-### Algorithme d'occurences des minimisers : minimisers_lexico
-
-La seule différence dans la fonction principale `minimisers_lexico` par rapport à `kmers_lexico` est dans l'appel à la fonction permettant d'obtenir le comptage des minimiseurs au lieu des kmers. On fait ici appel à la fonction globale `frequency_minimizer` et non `frequency_kmer` dans l'appel `frequency_minimizer(read, ksize, len_window).most_common(kmer_number)`
-
-
 ### Algorithme de fréquence des kmers : kmers_frequency
 
 La fonction principale `kmers_frequency` récupère un dictionnaire indexant les reads à partir des fonctions annexes, l'index contient la métrique associé aux reads. Cette métrique est une séquence de 0 et de 1 rendant compte de façon simplifiée des proportions en kmers de la séquence. Les reads sont stockés via leur index dans la liste `reads` qui contient tous les reads du fichier, non triés. Cela permet d'économiser en mémoire. La fonction retourne ensuite une liste, contenant les reads triés par ordre alphanumérique. Elle est calculée de la façon suivante:
@@ -78,3 +61,17 @@ La fonction `binary_minimisers` fonctionne sur le même principe que la fonction
 La fonction `frequency_minimizer` fonctionne sur le même principe que la fonction annexe `frequency_kmer`, en incluant une fenêtre glissante qui parcourt la séquence et dont on peut ajuster la taille. 
 Le minimiseur est récupéré en listant tous les kmers présents dans la fenêtre et en récupérant le plus petit (ordre lexicographique). On récupère aussi sa position j dans la séquence.
 Pour améliorer la vitesse de parcours de la séquence par la fenêtre glissante, le terme  `i += minimiser[1] + 1` est utlilisé. Dés que l'on a trouvé un minimiseur, on déplace la fenêtre de façon à dépasser ce minimiseur avant de recommencer à en chercher un. On utilise pour cela la position `j` du minimiseur dans la séquence stocké dans `minimiseur[1]`.
+
+### Algorithme d'occurences des kmers : kmers_lexico
+
+La fonction principale `kmers_lexico` repose sur une compréhension de liste qui, pour chaque read, extrait une signature formée des *kmer_number*, *ksize*-mers les plus communs.
+
+```python
+[reads[i] for i in [i for i, _ in sorted(enumerate([''.join([key for key, _ in frequency_kmer(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
+```
+
+On récupère ainsi le nombre souhaité de kmers les plus présents ainsi que leur nombre d'occurences dans la séquence avec `frequency_kmer(read, ksize).most_common(kmer_number)`. Puis, on filtre afin de ne conserver que les kmers par ordre de présence avec la compréhension `[key for key, _ in sorted_counter]`. Ensuite, on concatène grâce à la fonction `join` les *n* kmers en une signature, que l'on trie lexicographiquement selon cette signature en fonction de l'index de la signature avec `sorted(list,key=lambda x:x[1])` qui se trouve à la position 1 de chaque tuple. On récupère une liste de positions, et on construit la liste en récupérant chaque read à la position `i` pour chaque position dans la liste de positions, ce qui réordonne nos reads pour la sortie.
+
+### Algorithme d'occurences des minimisers : minimisers_lexico
+
+La seule différence dans la fonction principale `minimisers_lexico` par rapport à `kmers_lexico` est dans l'appel à la fonction permettant d'obtenir le comptage des minimiseurs au lieu des kmers. On fait ici appel à la fonction globale `frequency_minimizer` et non `frequency_kmer` dans l'appel `frequency_minimizer(read, ksize, len_window).most_common(kmer_number)`
