@@ -2,6 +2,14 @@
 from collections import Counter
 from itertools import product, chain
 
+# list of all sort functions that can be accepted by the parser
+PARSER_FUNCTIONS: list = [
+    'minimisers_lexico',
+    'kmers_lexico',
+    'kmers_frequency',
+    'minimiser_presence_absence'
+]
+
 
 def clean_fasta(input: str) -> list[str]:
     """Returns all the reads from a fasta-like file as a list
@@ -30,7 +38,7 @@ def write_output(func) -> None:
     return wrapper
 
 
-def frequency(read: str, seed_size) -> dict:
+def frequency_kmer(read: str, seed_size) -> dict:
     """Returns the frequency of kmers per read
     Parameters
     ----------
@@ -44,28 +52,6 @@ def frequency(read: str, seed_size) -> dict:
         a dictionnary containing the kmers encountered in the sequence and their number of occurences
     """
     return Counter([read[k:k+seed_size] for k in range(len(read)-seed_size)])
-
-
-def minimap_counter(seq:str, len_window:int, ksize:int) -> dict:
-    """Counts the minimizers of a sequence
-
-    Args:
-        seq (str): DNA read
-        len_window (int): size of the sliding window
-        ksize (int): size of the kmer
-
-    Returns:
-        dict: counts of minimizers
-    """
-    list_kmer_window = [0 for _ in range(len_window)]
-    minimiser_list = list()
-    for i in range(len(seq)-ksize-1):
-        for j in range(len_window):
-            list_kmer_window[j] = (seq[i+j: i+j+ksize], i)
-        min = sorted(list_kmer_window)[0]
-        if min[0] not in minimiser_list:
-            minimiser_list.append(min)
-    return Counter([minimizer for minimizer, idx in minimiser_list])
 
 
 def binary(dico: dict, len_read: int, list_xmers: list, threshold: float) -> str:
@@ -124,7 +110,7 @@ def indexation(list_seq: list, seed_size: int, len_read: int = 100) -> dict:
     # If 4 differents kmers exist, then each kmer have a propability of 25% percent to occur. The threshold will be set to 0.25.
     threshold = 1/len(list_xmers)
     for i, read in enumerate(list_seq):
-        dico = frequency(read, seed_size)
+        dico = frequency_kmer(read, seed_size)
         binary_seq = binary(dico, len_read, list_xmers, threshold)
         if binary_seq in index:
             index[binary_seq] += [i]
@@ -241,7 +227,7 @@ def kmers_lexico(input: str, output: str, reads: list = [], ksize: int = 4, kmer
         kmer_number (int, optional): number of top common kmers. Defaults to 3.
     """
     return [reads[i] for i in [i for i, _ in sorted(enumerate([''.join(
-        [key for key, _ in frequency(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
+        [key for key, _ in frequency_kmer(read, ksize).most_common(kmer_number)]) for read in reads]), key=lambda x:x[1])]]
 
 
 @write_output

@@ -16,8 +16,7 @@ if __name__ == "__main__":
                         default='minimiser_presence_absence',
                         const='minimiser_presence_absence',
                         nargs='?',
-                        choices=['minimisers_lexico', 'kmers_lexico',
-                                 'kmers_frequency', 'minimiser_presence_absence'],
+                        choices=sort_functions.PARSER_FUNCTIONS,
                         help='Gives a method to sort reads.')
     args = parser.parse_args()
 

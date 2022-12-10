@@ -1,23 +1,31 @@
-Au format pdf
-3 pages max
+# Rapport développeur
 
-# Structure générale du code 
-intro
+## Structure générale du code 
 
+Le programme se découpe en trois fichiers distincts.
+Le script `read_organizer.py` contient le parser en ligne de commande nécessaire pour lancer la compression d'un fichier. Après vérification des arguments, il exécute une fonction contenue dans `sort_functions.py`.
 
-# Fonctions générales
+Grâce à l'import de `sort_functions.py` dans `read_organizer.py`, la fonction `getattr(sort_functions, args.func)()` permet de lancer, depuis le nom de fonction donné en argument, la fonction correspondante dans le fichier contenant les fonctions de tri.
+
+## Fonctions générales
+
+En ce segment seront détaillées les fonctions utilisées par plusieurs autres fonctions de tri.
+
+### Comptage d'occurences dans des chaînes
+
+La fonction `frequency_kmer` consiste à retourner, pour le read donné en argument, le dictionnaire contenant les kmers de ksize de long. Pour chaque position, on récupère un kmer, qui se trouve inclus au dictionnaire comptabilisant ceux-ci.
+L'objet retourné est un dictionnaire, au format `kmer : nombre d'occurences du kmer` pour chaque kmer rencontré dans le read.
 
 La fonction `frequency_minimizer` consiste à retourner, pour le read donné en argument, le dictionnaire contenant les minimiseurs de ksize de long d'une fenêtre glissante sur le read de len_window de long. Pour chaque position, on récupère un minimiseur, qui se trouve inclus au dictionnaire comptabilisant ceux-ci.
 L'objet retourné est un dictionnaire, au format `minimiseur : nombre d'occurences du minimiseur` pour chaque minimiseur rencontré dans le read.
 
-Communes à toutes les fonctions.
+### Nettoyage des fichiers de séquençage
 
-## Nettoyage des fichiers de séquençage : clean_fasta
+La fonction `clean_fasta` prend en entrée un chemin vers un fichier FASTA-like valide, et se chage de le charger en une liste. Attention, pour de très grands fichiers ne rentrant pas dans la mémoire, une telle méthode ne serait pas appropriée, et il faudrait renvoyer le contenu du fichier en tant que générateur. La fonction nettoire toutes leslignes précédées de chevrons (headers) et nettoire les éventuels espaces et retours à la ligne.
 
+### Gestion des entrées/sorties
 
-## Ecriture des reads triés dans un fichier texte : @write_output
-
-Le traitement des entrées/sorties s'effectue via un décorateur.
+Le traitement des entrées/sorties s'effectue via une fonction utilisée en tant que décorateur.
 
 ```python
 def write_output(func) -> None:
@@ -35,26 +43,18 @@ Cela permet d'implémenter toute autre nouvelle méthode de tri sans avoir à se
 ```python
 @write_output
 def some_sort_function(input: str, output: str, reads: list = []) -> list:
-    """
-    Parameters
-    ----------
-    input : (str) the FASTA-like file to sort
-    output : (str) the sorted file
-    reads : (list, optional) reads extracted from the input file by the decorator.
-
-    Returns
-    -------
-    (list) the list containing the sorted reads
+    """ input : (str) the FASTA-like file to sort
+        output : (str) the sorted file
+        reads : (list, optional) reads extracted by the decorator
+        Returns : (list) the list containing the sorted reads
     """
 ```
+Afin d'ajouer une nouvelle fonction de tri, après implémentation, il faut la décorer et donner son nom à `PARSER_FUNCTIONS` pour qu'il la propose dans la liste de ses choix.
 
+## Fonctions de tri
 
-# Première stratégie
+### Algorithme de fréquence des kmers : kmers_lexico
 
-
-## Algorithme de fréquence des kmers : kmers_lexico
-
-### Fonction principale
 ```python
 [
     reads[i] for i in
@@ -77,9 +77,7 @@ def some_sort_function(input: str, output: str, reads: list = []) -> list:
 On utilise ici une compréhension de liste qui, pour chaque read, extrait les kmer_number ksize-mers les plus communs.
 Ensuite, on concatène grâce à la fonction join les kmers en une signature, que l'on trie lexicographiquement en fonction de cette signature. Enfin, par compréhension de liste, on trie les reads en fonction de l'index de la signature.
 
-## Algorithme de fréquence des minimisers : minimisers_lexico
-
-### Fonction principale
+### Algorithme de fréquence des minimisers : minimisers_lexico
 
 La seule différence par rapport à `kmers_lexico` est dans l'appel à la fonction permettant d'obtenir le comptage des minimiseurs au lieu des kmers. On fait ici appel à la fonction globale `frequency_minimizer` et non `frequency`.
 
@@ -87,12 +85,8 @@ La seule différence par rapport à `kmers_lexico` est dans l'appel à la foncti
 frequency_minimizer(read, ksize, len_window).most_common(kmer_number)
 ```
 
-# Seconde stratégie
+### Algorithme de fréquence des kmers : kmers_frequency
 
-
-## Algorithme de fréquence des kmers : kmers_frequency
-
-### Fonction principale
 ```python
 def kmers_frequency(input: str, output: str, reads: list = [], seed_size: int = 4) -> list:
     """Sort a read file by the kmers content of each read
